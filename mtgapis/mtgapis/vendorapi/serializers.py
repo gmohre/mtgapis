@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from vendorapi.models import Card, VendorQuote, WatchedCard
+from .models import Card, VendorQuote, WatchedCard
 
 class CardSerializer(serializers.ModelSerializer):
 
