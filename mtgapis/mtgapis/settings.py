@@ -11,22 +11,30 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-from local_settings import SECRET_KEY
+import environ
 
+root = environ.Path(__file__) - 1
+env = environ.Env()
+environ.Env.read_env('.env')
+SITE_ROOT = root()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+environ.Env.db_url_config(env.str('DATABASE_URL'))
 
+if env.str('DATABASE_URL', default=''):
+    DATABASES = {'default': env.db(),}
+
+ENGINE = "postgresql"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = SECRET_KEY
+ALLOWED_HOSTS = tuple(env.list('ALLOWED_HOSTS', default=[]))
 
+SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -39,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'vendorapi'
+    'mtgapis.vendorapi'
 ]
 
 MIDDLEWARE = [
@@ -76,12 +84,12 @@ WSGI_APPLICATION = 'mtgapis.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#    }
+#}
 
 
 # Password validation
