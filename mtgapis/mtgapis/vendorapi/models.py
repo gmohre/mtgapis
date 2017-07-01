@@ -13,8 +13,7 @@ class Card(models.Model):
     expansion = models.CharField(verbose_name="Card Expansion", max_length=255)
 
     def __str__(self):
-        return "{} - {}".format(
-            [self.name, self.expansion])
+        return "{} - {}".format(self.name, self.expansion)
 
 
 class VendorQuote(models.Model):

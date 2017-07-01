@@ -21,8 +21,8 @@ SITE_ROOT = root()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 environ.Env.db_url_config(env.str('DATABASE_URL'))
 
-if env.str('DATABASE_URL', default=''):
-    DATABASES = {'default': env.db(),}
+#if env.str('DATABASE_URL', default=''):
+#    DATABASES = {'default': env.db(),}
 
 ENGINE = "postgresql"
 
@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'mtgapis.vendorapi'
+    'mtgapis.vendorapi',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -65,7 +66,7 @@ ROOT_URLCONF = 'mtgapis.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,3 +130,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': ('rest_framework.renderers.AdminRenderer',)
+   }

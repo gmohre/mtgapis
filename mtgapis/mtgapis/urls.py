@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from rest_framework.urlpatterns import format_suffix_patterns
-from vendorapi import urls as vendorapi_urls
+from mtgapis.vendorapi import urls as vendorapi_urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
