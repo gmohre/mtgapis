@@ -18,12 +18,12 @@ CARDSBYNAMEDB = json.loads(open('cardsbynameDB.db', 'r').read())
 class Event(dict):
     def __init__(self, *args, **kwargs):
         self.URL_PATTERN = "http://mtgtop8.com/event/?e={}"
-        self.decks = []
+        self.decks = {}
         self.eventID = kwargs.get('eventID', 'NIL')
         self.url = self.URL_PATTERN.format(self.eventID)
         self.date = kwargs.get('date', 'NIL')
         self.populate_decks()
-        dict.__init__(self, decks=self.decks, eventID=self.eventID, url=self.url, date=self.date)
+        dict.__init__(self, decks=self.decks, eventID=self.eventID, url=self.url, date=self.date, deckIDs=[deckID for deckID, deck in self.decks.items()])
 
     def __iter__(self):
         self._iter = iter(self.decks)
@@ -36,6 +36,7 @@ class Event(dict):
         return dict(
                 data=dict(
                     decks=json.dumps(self.decks),
+                    deckIDs=self.deckIDS,
                     date=self.date,
                     eventID=self.eventID,
                     url=self.url))
@@ -60,17 +61,25 @@ class Event(dict):
                 deckID      = deckID.split("=")[2].replace("&f", "")
                 titleSearch = r"d=" + deckID + "&f=[A-Z].+?\>.+?\<\/a\>"
                 deckTitle   = str(re.search(titleSearch, html).group().split(">")[1].replace("</a", ""))
-                self.decks.append(Deck(deckID, deckTitle))
+                self.decks[deckID] = Deck(deckID, self.eventID, deckTitle)
 
 class FormatQuery(dict):
 
     def __init__(self, format_name='Standard', format_code='ST'):
-        self.format_name = format_name
-        self.format_code = format_code
-        self.events = {}
-        self.pages = 0
-        self.populate_events()
-        dict.__init__(self, format_name=format_name, format_code=self.format_code, events=self.events)
+        try:
+            f = open('deck_db.db', 'r').read()
+            d = json.loads(f.read())
+            dict(self, **json.loads(f))
+        except:
+            self.format_name = format_name
+            self.format_code = format_code
+            self.events = {}
+            self.pages = 0
+            self.populate_events()
+            dict.__init__(self, format_name=format_name, format_code=self.format_code, events=self.events, eventIDs=[eventID for eventID, event in self.events.items()])
+            f = open('deck_db.db', 'w')
+            f.write(json.dumps(self))
+
 
     def __iter__(self):
         self._iter = iter(self.events)
@@ -122,7 +131,7 @@ class Card(dict):
         except:
             self.multID = -1
         self.count = kwargs.get('count')
-        dict.__init__(self, name=self.name, multID=self.multID)
+        dict.__init__(self, name=self.name, multID=self.multID, count=self.count)
 
     def __repr__(self):
         return "{}:{}:{}".format(self.multID, self.name, self.count)
@@ -135,14 +144,25 @@ class Card(dict):
 
 class Deck(dict):
     
-    def __init__(self, deckID, title):
+    def __init__(self, deckID, eventID, title):
         self.title = title
-        self.URL_PATTERN= 'http://mtgtop8.com/dec?d={}'
+        self.URL_PATTERN = 'http://mtgtop8.com/dec?d={}&f=ST'
+        self.EVENT_PATTERN = 'http://mtgtop8.com/event?e={}&d={}&f=ST'
         self.url = self.URL_PATTERN.format(deckID)
+        self.event_url = self.EVENT_PATTERN.format(eventID, deckID)
         self.CARD_RE = re.compile("(?P<count>[0-9]{1,2}) (?P<set>\[.+?\]) (?P<name>.*[^\r^\n])")
         self.cards = {}
         self.populate_card_lists()
-        dict.__init__(self, title=self.title, ur=self.url, cards=self.cards)
+        
+        dict.__init__(self, 
+                title=self.title,
+                url=self.url,
+                cards=self.cards,
+                mbcardIDs=list(set(
+                    [card.multID for card in self.cards['md']]+\
+                    [card.multID for card in self.cards['sb']]
+                    ))
+                )
 
     def __iter__(self):
         self.card_index = 0
